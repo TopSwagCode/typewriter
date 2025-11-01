@@ -18,7 +18,14 @@ export function initTypingInput(scene, letters, scoreSystem) {
     if (target) {
       target.state = 'hit';
       scoreSystem.registerHit();
-      if (scene.hitLetters) scene.hitLetters.push(target.charLower);
+      if (scene.hitLetters) {
+        // Store extended metadata so JarScene can recreate appearance
+        scene.hitLetters.push({
+          char: target.charLower,
+          color: target.color || '#f8fafc',
+          tier: target.tier || 'unknown'
+        });
+      }
       createShatter(scene, target.textObj);
       createScorePopup(scene, target.textObj.x, target.textObj.y, 1);
       if (scene.playHitSound) scene.playHitSound();

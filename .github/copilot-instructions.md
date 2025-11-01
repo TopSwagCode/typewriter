@@ -9,30 +9,30 @@ These guidelines help AI coding agents contribute effectively to this early-stag
 - Game Modes (planned): Action ("Type Defenders") & Peace ("Garden Growers") plus typing/mouse mini-games.
 
 ### Recently Implemented (keep in sync)
-- Separate `gameplay.json` for `startingLives` and `gameOverDelays` (explosion + post delay) distinct from difficulty.
-- Delayed game over sequence: remaining active letters shatter in staggered intervals before end screen appears.
-- Expanded i18n: languages `en, da, de, fr, es, it, no, sv` with dropdown selector + flag, persisted in `tw_lang`.
-- Per-language character sets (`characters.json`) applied on load -> globals `CHAR_SET_RAW` / `CHAR_SET`.
-- Input filtering: ignores control/navigation keys (Escape, Enter, arrows, etc.) so no accidental misses.
-- Wrong key penalty toggle (life loss on/off) respected; life loss only occurs if flag enabled.
-- Pause system: `Escape` toggles pause (if not game over) showing overlay with Resume & Back to Menu.
-- Back to Menu buttons (pause + game over) destroy Phaser instance and restore difficulty selection overlay.
-- Miss flash visual feedback (`triggerMissFlash`) on wrong valid key: brief tinted full-screen rectangle fade.
-- Game instance stored (`phaserGame`) for safe destruction when returning to menu.
+ JarScene physics visualization: piled letters with custom gravity, bounce, friction, spatial hash + support-based resting logic.
+ Externalized JarScene UI (title, total count, back button) to HTML container `#jar-info` with i18n keys (`jar.title`, `jar.total`).
+ Added i18n keys for JarScene overlay across all languages.
+ `jarPhysics` config now includes `bodyRadius`, `fontSize`, `charCount`, `maxSlice` (performance cap), consumed by JarScene with optional debug overrides.
+ Debug overlay sliders for body radius, font size, character count; checkbox to show physics collision bodies; Delete toggles panel.
+ Start button styling now activates (green tier + pulse) only when both Speed and Amount selected; base buttons neutral grey until selected.
+ Difficulty/amount/life buttons now use tier-specific desaturated color palette with dynamic CSS pulse per selection.
+ Introduced dynamic SFX volume slider (persisted) and randomized hit sound pitch variation (`hitSound.pitchRandomization`).
 
-## Near-Term Implementation Priorities (from README "Next Steps")
+ Base buttons neutral grey (#475569). Selected options get tier-specific styling:
+  - Normal / Amount Normal / Life Off: green (#339877) pulse.
+  - Fast / Amount Many: amber (#c89c1a) pulse.
+  - Insane / Amount Horde / Life On: red (#c94545) pulse.
+ Outline, border, glow, and pulse animation color derived from a per-button CSS variable `--pulse-color`.
+ Start button acquires green tier & pulse only when ready (both difficulty dimensions selected). Disabled state shows neutral grey with reduced opacity.
+ Pulse animation intentionally subtle (1.8s cycle) to avoid visual noise.
 1. Prototype mini-game: Letter Attack in Phaser (core typing loop + falling letters + collision/removal).
-2. Static UI mockups: Main Menu, Level Select using plain HTML partials + lightweight CSS.
+ JarScene overlay (`#jar-info`) appears only while JarScene active; hidden on menu return, language change updates `jar.total` via `window.t()`.
+ JarScene spawn queue respects `jarPhysics.maxSlice` to cap performance impact; `charCount` debug slider can exceed but slice limits actual spawned bodies.
 3. Typing logic & collision: Key event handling, mapping characters to active entities, scoring.
+ When adjusting JarScene performance: lower `jarPhysics.maxSlice` for weaker devices; consider adaptive logic if FPS drops.
 4. Feedback layer: Simple sound (WebAudio) + basic animations (Phaser tweens).
-5. Persistence: Lightweight save (LocalStorage JSON) until Firebase is introduced.
-
-## Code Structure (Proposed — create as you implement, keep modular)
-```
-src/
-  game/
-    scenes/ (Phaser Scene classes: Boot, LetterAttack, Garden)
-    input/ (typing handlers, adaptive difficulty variable + events)
+ JarScene: `src/game/scenes/JarScene.js` uses `jarPhysics` config, external overlay, performance slice (`maxSlice`).
+ i18n keys extended with `jar.title`, `jar.total` for JarScene overlay.
     systems/ (spawn, scoring, power-ups)
     config/ (JSON configs: difficulty.json (spawn/speed), gameplay.json (lives, game-over timings), characters.json)
   ui/ (HTML templates + tiny JS controllers: menu.js, levelSelect.js)

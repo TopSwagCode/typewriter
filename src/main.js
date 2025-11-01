@@ -113,6 +113,7 @@ window.addEventListener('load', async () => {
   const debugFontSizeValue = document.getElementById('debug-font-size-value');
   const debugCharCountSlider = document.getElementById('debug-char-count');
   const debugCharCountValue = document.getElementById('debug-char-count-value');
+  const fontSelect = document.getElementById('font-select');
   // Initialize debug sliders from config defaults if available (before attaching listeners)
   if (window.JAR_PHYSICS) {
     if (debugBodyRadiusSlider) {
@@ -156,6 +157,7 @@ window.addEventListener('load', async () => {
   let selectedLife = 'on'; // on = lose life, off = no life loss
   let gameStarted = false;
   let currentLang = 'en';
+  let currentFont = 'JetBrainsMono';
 
   async function loadLanguage(lang) {
     const supported = ['en','da','de','fr','es','it','no','sv'];
@@ -211,6 +213,7 @@ window.addEventListener('load', async () => {
       localStorage.setItem('tw_last_life', selectedLife || 'on');
       localStorage.setItem('tw_lang', currentLang || 'en');
       localStorage.setItem('tw_sfx_volume', String(window.SFX_VOLUME));
+      localStorage.setItem('tw_font', currentFont || 'JetBrainsMono');
     } catch (_) { /* ignore quota */ }
   }
 
@@ -252,13 +255,33 @@ window.addEventListener('load', async () => {
     if (startBtn) {
       startBtn.disabled = !ready;
       startBtn.style.opacity = ready ? '1' : '0.5';
+      if (ready) startBtn.classList.add('ready'); else startBtn.classList.remove('ready');
     }
+    // Quote multi-word font names so they aren't treated as separate fallback families
+    const applied = currentFont && currentFont.includes(' ') ? `"${currentFont}"` : currentFont;
+    document.body.style.fontFamily = `${applied}, system-ui, sans-serif`;
   }
 
   function startGame() {
     if (gameStarted || !selectedSpeed || !selectedAmount) return;
     applySelections(selectedSpeed, selectedAmount);
     window.LOSE_LIFE_ON_WRONG_KEY = (selectedLife === 'on');
+    // Ensure global font family is set prior to scene creation
+    window.GAME_FONT_FAMILY = currentFont;
+    // Attempt to wait for selected font to be loaded (especially woff2) before starting scenes
+    const ensureFonts = async () => {
+      try {
+        if (document.fonts && document.fonts.ready) {
+          await Promise.race([
+            document.fonts.ready,
+            new Promise(res => setTimeout(res, 1200)) // fallback timeout
+          ]);
+        } else {
+          // Minimal fallback; short delay
+          await new Promise(res => setTimeout(res, 200));
+        }
+      } catch (_) { /* ignore */ }
+    };
   window.STARTING_LIVES = (window.GAMEPLAY_CONFIG && window.GAMEPLAY_CONFIG.startingLives) ? window.GAMEPLAY_CONFIG.startingLives : 3;
   // Game over sequence delay configuration (from gameplay config)
   const god = (window.GAMEPLAY_CONFIG && window.GAMEPLAY_CONFIG.gameOverDelays) || {};
@@ -266,7 +289,9 @@ window.addEventListener('load', async () => {
     window.GAMEOVER_POST_EXPLOSIONS_DELAY_MS = god.postExplosionsDelayMs || 250;
     gameStarted = true;
     if (diffOverlay) diffOverlay.style.display = 'none';
-    phaserGame = new Phaser.Game(config); // eslint-disable-line new-cap
+    ensureFonts().then(() => {
+      phaserGame = new Phaser.Game(config); // eslint-disable-line new-cap
+    });
   }
 
   function showStartMenu() {
@@ -342,9 +367,12 @@ window.addEventListener('load', async () => {
     const chars = sourceSet.length > 0 ? sourceSet : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const count = (typeof window.JAR_DEBUG_COUNT === 'number' ? window.JAR_DEBUG_COUNT : 100);
     const arr = [];
+    const palette = ['#6ee7b7','#fbbf24','#f87171','#93c5fd','#c084fc','#f472b6'];
     for (let i = 0; i < count; i += 1) {
       const c = chars[Math.floor(Math.random() * chars.length)];
-      arr.push(c.toLowerCase());
+      const color = palette[Math.floor(Math.random() * palette.length)];
+      const tier = ['slow','medium','fast'][Math.floor(Math.random() * 3)];
+      arr.push({ char: c.toLowerCase(), color, tier });
     }
     // Launch JarScene directly
     phaserGame.scene.start('JarScene', {
@@ -391,6 +419,25 @@ window.addEventListener('load', async () => {
   window.addEventListener('tw_back_to_menu_request', () => {
     showStartMenu();
   });
+  if (fontSelect) {
+    try {
+      const pf = localStorage.getItem('tw_font');
+      if (pf) currentFont = pf;
+    } catch (_) {}
+    fontSelect.value = currentFont;
+    fontSelect.addEventListener('change', () => {
+      currentFont = fontSelect.value;
+      persist();
+      updateButtonStates();
+      window.GAME_FONT_FAMILY = currentFont;
+      if (phaserGame) {
+        const la = phaserGame.scene.keys['LetterAttack'];
+        if (la && la.refreshFontFamily) la.refreshFontFamily(currentFont);
+        const js = phaserGame.scene.keys['JarScene'];
+        if (js && js.refreshFontFamily) js.refreshFontFamily(currentFont);
+      }
+    });
+  }
   if (sfxVolumeSlider) {
     sfxVolumeSlider.addEventListener('input', () => {
       const raw = parseInt(sfxVolumeSlider.value, 10);
@@ -443,10 +490,12 @@ window.addEventListener('load', async () => {
     const pa = localStorage.getItem('tw_last_amount');
     const pl = localStorage.getItem('tw_last_life');
     const langPersist = localStorage.getItem('tw_lang');
+    const fontPersist = localStorage.getItem('tw_font');
     if (ps && window.DIFFICULTY_CONFIG.speedOptions[ps]) selectedSpeed = ps;
     if (pa && window.DIFFICULTY_CONFIG.amountOptions[pa]) selectedAmount = pa;
     if (pl && (pl === 'on' || pl === 'off')) selectedLife = pl;
     if (langPersist) currentLang = langPersist;
+    if (fontPersist) currentFont = fontPersist;
   } catch (_) { /* ignore */ }
   if (!selectedSpeed) selectedSpeed = defaults.speed;
   if (!selectedAmount) selectedAmount = defaults.amount;

@@ -5,7 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Typewriter</title>
   <style>
-    body { margin:0; font-family: system-ui, sans-serif; background:#10141a; color:#fff; display:flex; flex-direction:column; align-items:center; }
+  body { margin:0; font-family: system-ui, sans-serif; background:#10141a; color:#fff; display:flex; flex-direction:column; align-items:center; }
+  /* JetBrains Mono font faces (using src/assets/fonts path) */
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-Thin.woff2') format('woff2'); font-weight:100; font-style:normal; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-ThinItalic.woff2') format('woff2'); font-weight:100; font-style:italic; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-ExtraLight.woff2') format('woff2'); font-weight:200; font-style:normal; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-ExtraLightItalic.woff2') format('woff2'); font-weight:200; font-style:italic; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-Light.woff2') format('woff2'); font-weight:300; font-style:normal; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-LightItalic.woff2') format('woff2'); font-weight:300; font-style:italic; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-Italic.woff2') format('woff2'); font-weight:400; font-style:italic; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-MediumItalic.woff2') format('woff2'); font-weight:500; font-style:italic; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-SemiBold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-SemiBoldItalic.woff2') format('woff2'); font-weight:600; font-style:italic; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-BoldItalic.woff2') format('woff2'); font-weight:700; font-style:italic; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-ExtraBold.woff2') format('woff2'); font-weight:800; font-style:normal; font-display:swap; }
+  @font-face { font-family:'JetBrainsMono'; src:url('./src/assets/fonts/JetBrainsMono-ExtraBoldItalic.woff2') format('woff2'); font-weight:800; font-style:italic; font-display:swap; }
+  /* Scary font (Shlop) */
+  @font-face { font-family:'scary'; src:url('./src/assets/fonts/shlop rg.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
     header { padding:1rem 1.25rem; text-align:center; }
     #game-root { display:flex; flex-direction:column; align-items:center; }
     canvas { outline:1px solid #2c2f36; }
@@ -17,7 +36,18 @@
   #restart-btn { background:#6ee7b7; color:#0f172a; border:none; padding:0.6rem 1.1rem; font-size:16px; border-radius:6px; cursor:pointer; }
   #restart-btn:hover { filter:brightness(1.1); }
     @keyframes pulseGlow { 0% { box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 50% { box-shadow:0 0 0 6px rgba(110,231,183,0); } 100% { box-shadow:0 0 0 0 rgba(110,231,183,0); } }
-  .speed-btn.selected, .amount-btn.selected, .life-btn.selected { outline:2px solid #6ee7b7; outline-offset:2px; border:2px solid #6ee7b7; filter:brightness(1.15); animation:pulseGlow 1.6s ease-in-out infinite; box-shadow:0 0 0 2px #6ee7b7, 0 0 10px -2px #6ee7b7; }
+  /* Neutral base appearance */
+  .speed-btn, .amount-btn, .life-btn { background:#475569 !important; color:#f1f5f9 !important; border:none; transition:background-color 140ms ease, box-shadow 140ms ease; }
+  /* Subtle tier palette (desaturated) + CSS var for pulse */
+  .speed-btn.selected[data-speed="normal"], .amount-btn.selected[data-amount="normal"], .life-btn.selected[data-life="off"] { background:#339877 !important; color:#e8faf5 !important; --pulse-color: 51,152,119; }
+  .speed-btn.selected[data-speed="fast"], .amount-btn.selected[data-amount="many"] { background:#c89c1a !important; color:#fff9e5 !important; --pulse-color: 200,156,26; }
+  .speed-btn.selected[data-speed="insane"], .amount-btn.selected[data-amount="horde"], .life-btn.selected[data-life="on"] { background:#c94545 !important; color:#ffe5e5 !important; --pulse-color: 201,69,69; }
+  /* Start button adopts green tier when enabled */
+  #start-btn.ready { background:#339877 !important; color:#0f172a !important; --pulse-color:51,152,119; }
+  #start-btn.ready { outline:2px solid rgba(var(--pulse-color,51,152,119),0.85); outline-offset:2px; border:2px solid rgba(var(--pulse-color,51,152,119),0.85); animation:pulseGlow 1.8s ease-in-out infinite; box-shadow:0 0 0 2px rgba(var(--pulse-color,51,152,119),0.55), 0 0 12px -3px rgba(var(--pulse-color,51,152,119),0.5); }
+  /* Shared selected styling using dynamic pulse color */
+  .speed-btn.selected, .amount-btn.selected, .life-btn.selected { outline:2px solid rgba(var(--pulse-color,110,231,183),0.85); outline-offset:2px; border:2px solid rgba(var(--pulse-color,110,231,183),0.85); animation:pulseGlow 1.8s ease-in-out infinite; box-shadow:0 0 0 2px rgba(var(--pulse-color,110,231,183),0.6), 0 0 12px -3px rgba(var(--pulse-color,110,231,183),0.55); filter:none; }
+  @keyframes pulseGlow { 0% { box-shadow:0 0 0 0 rgba(var(--pulse-color,110,231,183),0.55); } 55% { box-shadow:0 0 0 10px rgba(var(--pulse-color,110,231,183),0); } 100% { box-shadow:0 0 0 0 rgba(var(--pulse-color,110,231,183),0); } }
   /* Language dropdown */
   .lang-dropdown { position:relative; display:inline-block; }
   .lang-trigger { display:flex; align-items:center; gap:0.35rem; background:#334155; color:#fff; border:none; padding:0.35rem 0.6rem; border-radius:6px; cursor:pointer; font-size:12px; line-height:1; }
@@ -52,7 +82,7 @@
         <div class="lang-dropdown" id="lang-dropdown">
           <button class="lang-trigger" id="lang-trigger" aria-label="Language" aria-haspopup="true" aria-expanded="false">
             <span class="flag" id="lang-trigger-flag">🇬🇧</span><span id="lang-trigger-label">English</span>
-            <span style="opacity:0.6; margin-left:2px;">▾</span>
+           
           </button>
           <div class="lang-menu" id="lang-menu" role="menu">
             <div class="lang-option" data-lang="en" role="menuitem">
@@ -87,27 +117,36 @@
         <div>
           <h3 style="margin:0 0 0.5rem; font-size:15px;" data-i18n="menu.speed.title">Speed</h3>
           <div class="speed-group" style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
-            <button data-speed="normal" class="speed-btn" style="background:#64748b; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.speed.normal">Normal</button>
-            <button data-speed="fast" class="speed-btn" style="background:#fbbf24; color:#0f172a; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.speed.fast">Fast</button>
-            <button data-speed="insane" class="speed-btn" style="background:#f87171; color:#0f172a; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.speed.insane">Insane</button>
+            <button data-speed="normal" class="speed-btn" style="padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.speed.normal">Normal</button>
+            <button data-speed="fast" class="speed-btn" style="padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.speed.fast">Fast</button>
+            <button data-speed="insane" class="speed-btn" style="padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.speed.insane">Insane</button>
           </div>
         </div>
         <div>
           <h3 style="margin:0 0 0.5rem; font-size:15px;" data-i18n="menu.amount.title">Amount</h3>
           <div class="amount-group" style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
-            <button data-amount="normal" class="amount-btn" style="background:#64748b; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.amount.normal">Normal</button>
-            <button data-amount="many" class="amount-btn" style="background:#60a5fa; color:#0f172a; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.amount.many">Many</button>
-            <button data-amount="horde" class="amount-btn" style="background:#a855f7; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.amount.horde">Horde</button>
+            <button data-amount="normal" class="amount-btn" style="padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.amount.normal">Normal</button>
+            <button data-amount="many" class="amount-btn" style="padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.amount.many">Many</button>
+            <button data-amount="horde" class="amount-btn" style="padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.amount.horde">Horde</button>
           </div>
         </div>
         <div>
           <h3 style="margin:0 0 0.5rem; font-size:15px;" data-i18n="menu.penalty.title">Wrong Key Penalty</h3>
           <div class="life-group" style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
-            <button data-life="off" class="life-btn" style="background:#64748b; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer; font-size:14px;" data-i18n="menu.penalty.lifeOff">😇 No Life Loss</button>
-            <button data-life="on" class="life-btn" style="background:#f43f5e; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer; font-size:14px;" data-i18n="menu.penalty.lifeOn">😈 Life Loss</button>
+            <button data-life="off" class="life-btn" style="padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer; font-size:14px;" data-i18n="menu.penalty.lifeOff">😇 No Life Loss</button>
+            <button data-life="on" class="life-btn" style="padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer; font-size:14px;" data-i18n="menu.penalty.lifeOn">😈 Life Loss</button>
           </div>
         </div>
-        <button id="start-btn" disabled style="margin-top:0.5rem; background:#6ee7b7; color:#0f172a; border:none; padding:0.6rem 1.2rem; font-size:16px; border-radius:6px; cursor:pointer; opacity:0.5;" data-i18n="menu.start">Start</button>
+        <div>
+          <h3 style="margin:0 0 0.5rem; font-size:15px;" data-i18n="menu.font.title">Font</h3>
+          <select id="font-select" style="background:#334155; color:#fff; border:none; padding:0.4rem 0.6rem; border-radius:6px; font-size:13px;">
+            <option value="JetBrainsMono">JetBrains Mono</option>
+            <option value="Cousine">Cousine</option>
+            <option value="Comic Sans MS">Comic Sans</option>
+            <option value="scary">Scary</option>
+          </select>
+        </div>
+  <button id="start-btn" disabled style="margin-top:0.5rem; border:none; padding:0.6rem 1.2rem; font-size:16px; border-radius:6px; cursor:pointer; opacity:0.5;" data-i18n="menu.start">Start</button>
       </div>
     </div>
   </div>

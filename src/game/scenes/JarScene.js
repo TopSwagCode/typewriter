@@ -53,7 +53,14 @@ export default class JarScene extends Phaser.Scene {
 
   // Staggered spawn setup (slice only to safeguard extreme counts)
   const maxSlice = (window.JAR_PHYSICS && typeof window.JAR_PHYSICS.maxSlice === 'number') ? window.JAR_PHYSICS.maxSlice : 1000;
-  this.spawnQueue = this.collectedLetters.slice(0, maxSlice).map(ch => ch.toUpperCase());
+    this.spawnQueue = this.collectedLetters.slice(0, maxSlice).map(item => {
+      if (typeof item === 'string') {
+        return { char: item.toUpperCase(), color: '#f8fafc' };
+      }
+      // Expect shape {char,color,tier}
+      const upper = (item.char || '').toUpperCase();
+      return { char: upper || '?', color: item.color || '#f8fafc', tier: item.tier };
+    });
   this.spawnIntervalMs = 36; // adjusted spawn cadence for bigger jar
     this._lastSpawnTime = 0;
     this._innerLeft = innerLeft; this._innerRight = innerRight; this._innerTop = innerTop;
@@ -74,14 +81,15 @@ export default class JarScene extends Phaser.Scene {
     if (this.spawnQueue && this.spawnQueue.length > 0) {
       if (time - this._lastSpawnTime >= this.spawnIntervalMs) {
         this._lastSpawnTime = time;
-        const ch = this.spawnQueue.shift();
+  const item = this.spawnQueue.shift();
+  const ch = item.char;
         const spawnX = Phaser.Math.Linear(this._innerLeft, this._innerRight, Math.random());
   // Spawn closer to jar top to avoid getting stuck too high
   const spawnY = this._innerTop - 30 - (Math.random() * 40);
           // Use configured bodyRadius & fontSize unless overridden by debug sliders.
           const baseRadius = this.debugRadiusOverride || (window.JAR_PHYSICS ? window.JAR_PHYSICS.bodyRadius : 18);
           const fontSize = this.debugFontSizeOverride || (window.JAR_PHYSICS ? window.JAR_PHYSICS.fontSize : Math.round(baseRadius * 1.8));
-  const txt = this.add.text(spawnX, spawnY, ch, { fontFamily:'monospace', fontSize: `${fontSize}px`, color:'#f8fafc' }).setOrigin(0.5);
+  const txt = this.add.text(spawnX, spawnY, ch, { fontFamily:(window.GAME_FONT_FAMILY || 'JetBrainsMono'), fontSize: `${fontSize}px`, color: item.color || '#f8fafc' }).setOrigin(0.5);
         txt.setScale(0.1);
         this.tweens.add({ targets: txt, scale: 1, duration: 200, ease: 'Back.Out' });
         // Increased radius for larger collision area (approx half width of glyph)
@@ -243,5 +251,12 @@ export default class JarScene extends Phaser.Scene {
     const jarInfoEl = document.getElementById('jar-info');
     if (jarInfoEl) jarInfoEl.style.display = 'none';
     super.destroy();
+  }
+
+  refreshFontFamily(newFamily) {
+    for (const body of this.letterBodies) {
+      if (body.sprite && body.sprite.setFontFamily) body.sprite.setFontFamily(newFamily);
+    }
+    window.GAME_FONT_FAMILY = newFamily;
   }
 }

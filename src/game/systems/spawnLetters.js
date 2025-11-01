@@ -19,8 +19,9 @@ export function createLetterSpawner(scene, collection) {
     // Pick a tier (weighted equally for now)
     const tier = SPEED_TIERS[Math.floor(Math.random() * SPEED_TIERS.length)];
     const speed = tier.min + Math.random() * (tier.max - tier.min);
+    const appliedFamily = (window.GAME_FONT_FAMILY || 'JetBrainsMono');
     const textObj = scene.add.text(x, y, char, {
-      fontFamily: 'monospace',
+      fontFamily: appliedFamily,
       fontSize: '32px',
       color: tier.color,
     }).setOrigin(0.5, 0.5).setAlpha(0);
@@ -39,7 +40,7 @@ export function createLetterSpawner(scene, collection) {
     const bouncePhase = Math.random() * Math.PI * 2;
     const bounceAmp = tier.bounceAmp; // vertical bob amplitude in px
   const charLower = char.toLowerCase();
-  const letter = { id: nextId++, char, charLower, x, y, speed, tier: tier.name, color: tier.color, state: 'active', textObj, wobblePhase, wobbleAmp, tiltAmpDeg, bouncePhase, bounceAmp };
+  const letter = { id: nextId++, char, charLower, x, y, speed, tier: tier.name, color: tier.color, state: 'active', textObj, wobblePhase, wobbleAmp, tiltAmpDeg, bouncePhase, bounceAmp, fontFamily: appliedFamily };
     collection.push(letter);
   }
 

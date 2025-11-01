@@ -188,7 +188,7 @@ export default class LetterAttackScene extends Phaser.Scene {
     for (let i = 0; i < this.lives; i += 1) {
       const x = startX - (spacing * i);
       const heart = this.add.text(x, y, heartSymbol, {
-        fontFamily: 'monospace',
+  fontFamily: (window.GAME_FONT_FAMILY || 'JetBrainsMono'),
         fontSize: '34px', // larger heart size
         color: '#f43f5e',
       }).setOrigin(0.5);
@@ -284,6 +284,19 @@ export default class LetterAttackScene extends Phaser.Scene {
     this.createHearts();
     this.updateHud();
     this.stopHeartbeat(); // will start again if low life condition met
+    window.GAME_FONT_FAMILY = (window.GAME_FONT_FAMILY || 'JetBrainsMono');
+  }
+
+  refreshFontFamily(newFamily) {
+    for (const h of this.hearts) { if (h && h.setFontFamily) h.setFontFamily(newFamily); }
+    // Update active falling letters
+    for (const l of this.letters) {
+      if (l.textObj && l.textObj.setFontFamily) {
+        l.textObj.setFontFamily(newFamily);
+        l.fontFamily = newFamily;
+      }
+    }
+    window.GAME_FONT_FAMILY = newFamily;
   }
 
   refreshLowLifeEffect() {
