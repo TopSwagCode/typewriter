@@ -100,10 +100,17 @@ export default class LetterAttackScene extends Phaser.Scene {
       if (l.state !== 'active') continue;
       // Vertical fall
       l.y += l.speed * (delta / 1000) * speedMultiplier;
-      // Horizontal drift toward center (subtle)
-      const driftStrength = 8; // px per second base toward center
-      const dir = centerX - l.x; // distance to center
-      l.x += (dir / 1000) * driftStrength * (delta / 16.67); // scaled drift
+  // Horizontal drift: smooth easing toward center based on vertical progress
+  // Progress (0 at spawn, ~1 near bottom)
+  const progress = Phaser.Math.Clamp(l.y / (this.game.config.height - 60), 0, 1);
+  // Desired horizontal movement this frame (toward center) scaled by progress^0.85 for gentle start
+  const dirToCenter = centerX - l.x;
+  // Limit base horizontal speed so letters don't rush center; scale with progress
+  const maxHorizontalPerSecond = 40 * Math.pow(progress, 0.85); // caps early drift, increases later
+  // Convert desired movement into small step using easing toward center
+  const desiredStep = dirToCenter * 0.015 * progress; // small proportional step
+  const cappedStep = Phaser.Math.Clamp(desiredStep, -maxHorizontalPerSecond * (delta / 1000), maxHorizontalPerSecond * (delta / 1000));
+  l.x += cappedStep;
       // Wobble (sine) overlay
       l.wobblePhase += (delta / 1000) * 6; // wobble speed (radians per second)
       // Bounce phase (faster for faster letters)
@@ -216,6 +223,7 @@ export default class LetterAttackScene extends Phaser.Scene {
       this.time.delayedCall(delayAccum, () => {
         if (l.textObj && !l._fading) {
           createShatter(this, l.textObj);
+          if (this.playHitSound) this.playHitSound();
           l.textObj.destroy();
           l.state = 'hit'; // mark for removal
         }
