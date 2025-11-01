@@ -1,0 +1,14 @@
+{
+  "defaultLanguage": "en",
+  "sets": {
+    "en": "QWERTYUIOPASDFGHJKLZXCVBNM",
+    "da": "QWERTYUIOPÅASDFGHJKLÆØZXCVBNM",
+    "de": "QWERTZUIOPÄASDFGHJKLÖÜYXCVBNM",
+    "fr": "AZERTYUIOPQSDFGHJKLMWXCVBNÉÈÀÇÙÔÊÎÂ",
+    "es": "QWERTYUIOPASDFGHJKLÑZXCVBNM",
+    "it": "QWERTYUIOPASDFGHJKLZXCVBNM",
+    "no": "QWERTYUIOPÅASDFGHJKLØÆZXCVBNM",
+    "sv": "QWERTYUIOPÅASDFGHJKLÖÄZXCVBNM"
+  },
+  "comment": "Language-mapped character sets for spawning. 'defaultLanguage' used if requested language missing."
+}

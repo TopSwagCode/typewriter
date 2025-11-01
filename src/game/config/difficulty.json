@@ -1,0 +1,17 @@
+{
+  "defaults": {
+    "speed": "normal",
+    "amount": "normal"
+  },
+  "speedOptions": {
+    "normal": { "speedMultiplier": 0.50 },
+    "fast": { "speedMultiplier": 1.0 },
+    "insane": { "speedMultiplier": 2.2 }
+  },
+  "amountOptions": {
+    "normal": { "spawnIntervalMs": 1500 },
+    "many": { "spawnIntervalMs": 1000 },
+    "horde": { "spawnIntervalMs": 500 }
+  },
+  "comment": "Select speed (affects fall velocity) and amount (affects spawn frequency) independently."
+}

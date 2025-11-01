@@ -1,0 +1,8 @@
+{
+  "startingLives": 5,
+  "gameOverDelays": {
+    "explosionIntervalMs": 70,
+    "postExplosionsDelayMs": 800
+  },
+  "comment": "Gameplay tuning values not tied to difficulty scaling."
+}

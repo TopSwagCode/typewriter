@@ -1,0 +1,11 @@
+/* Minimal utility-like CSS (avoid full Tailwind now) */
+:root { --c-bg:#10141a; --c-panel:#1e2530; --c-accent:#6ee7b7; --c-warn:#f87171; }
+body { background:var(--c-bg); color:#fff; font-family:system-ui,sans-serif; }
+.flex { display:flex; }
+.center { justify-content:center; align-items:center; }
+.mt-sm { margin-top:0.5rem; }
+.rounded { border-radius:6px; }
+.p-sm { padding:0.5rem; }
+.bg-panel { background:var(--c-panel); }
+.text-accent { color:var(--c-accent); }
+.text-warn { color:var(--c-warn); }

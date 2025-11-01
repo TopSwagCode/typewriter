@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Typewriter</title>
+  <style>
+    body { margin:0; font-family: system-ui, sans-serif; background:#10141a; color:#fff; display:flex; flex-direction:column; align-items:center; }
+    header { padding:1rem 1.25rem; text-align:center; }
+    #game-root { display:flex; flex-direction:column; align-items:center; }
+    canvas { outline:1px solid #2c2f36; }
+  .hud { margin-top:0.5rem; font-size:14px; letter-spacing:0.5px; }
+    .hit { color:#6ee7b7; }
+    .miss { color:#f87171; }
+  #end-screen { position:fixed; inset:0; background:rgba(0,0,0,0.75); display:none; align-items:center; justify-content:center; flex-direction:column; gap:1rem; }
+  #end-screen .panel { background:#1e2530; padding:1.5rem 2rem; border-radius:10px; text-align:center; box-shadow:0 0 0 1px #2c2f36, 0 4px 18px -4px #000; }
+  #restart-btn { background:#6ee7b7; color:#0f172a; border:none; padding:0.6rem 1.1rem; font-size:16px; border-radius:6px; cursor:pointer; }
+  #restart-btn:hover { filter:brightness(1.1); }
+    @keyframes pulseGlow { 0% { box-shadow:0 0 0 0 rgba(110,231,183,0.55); } 50% { box-shadow:0 0 0 6px rgba(110,231,183,0); } 100% { box-shadow:0 0 0 0 rgba(110,231,183,0); } }
+  .speed-btn.selected, .amount-btn.selected, .life-btn.selected { outline:2px solid #6ee7b7; outline-offset:2px; border:2px solid #6ee7b7; filter:brightness(1.15); animation:pulseGlow 1.6s ease-in-out infinite; box-shadow:0 0 0 2px #6ee7b7, 0 0 10px -2px #6ee7b7; }
+  /* Language dropdown */
+  .lang-dropdown { position:relative; display:inline-block; }
+  .lang-trigger { display:flex; align-items:center; gap:0.35rem; background:#334155; color:#fff; border:none; padding:0.35rem 0.6rem; border-radius:6px; cursor:pointer; font-size:12px; line-height:1; }
+  .lang-trigger .flag { font-size:16px; }
+  .lang-menu { position:absolute; top:100%; left:0; background:#1e2530; border:1px solid #2c2f36; border-radius:6px; padding:0.3rem 0; min-width:120px; box-shadow:0 6px 18px -6px #000; display:none; z-index:20; }
+  .lang-menu.open { display:block; }
+  .lang-option { display:flex; align-items:center; gap:0.35rem; padding:0.35rem 0.55rem; cursor:pointer; font-size:12px; color:#fff; }
+  .lang-option .flag { font-size:16px; }
+  .lang-option:hover { background:#334155; }
+  .lang-option.selected { background:#334155; font-weight:600; }
+  .lang-dropdown:focus-within .lang-menu { display:block; }
+  .lang-menu-divider { height:1px; background:#2c2f36; margin:0.4rem 0; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+  <script>window.LETTER_SPEED_MULTIPLIER = 1; // adjust manually for now</script>
+</head>
+<body>
+  <header>
+    <h1 data-i18n="home.title">Codename: Typewriter</h1>
+  </header>
+  <div id="game-root"></div>
+  <div class="hud" id="hud"></div>
+  <div id="difficulty-select" style="position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); flex-direction:column; gap:1rem;">
+    <div style="background:#1e2530; padding:1.5rem 2rem; border-radius:10px; text-align:center; box-shadow:0 0 0 1px #2c2f36, 0 4px 18px -4px #000; min-width:340px; position:relative;">
+      <div style="position:absolute; top:10px; right:10px;">
+        <div class="lang-dropdown" id="lang-dropdown">
+          <button class="lang-trigger" id="lang-trigger" aria-label="Language" aria-haspopup="true" aria-expanded="false">
+            <span class="flag" id="lang-trigger-flag">🇬🇧</span><span id="lang-trigger-label">English</span>
+            <span style="opacity:0.6; margin-left:2px;">▾</span>
+          </button>
+          <div class="lang-menu" id="lang-menu" role="menu">
+            <div class="lang-option" data-lang="en" role="menuitem">
+              <span class="flag">🇬🇧</span><span data-i18n="menu.language.english">English</span>
+            </div>
+            <div class="lang-option" data-lang="da" role="menuitem">
+              <span class="flag">🇩🇰</span><span data-i18n="menu.language.danish">Dansk</span>
+            </div>
+            <div class="lang-option" data-lang="de" role="menuitem">
+              <span class="flag">🇩🇪</span><span data-i18n="menu.language.german">German</span>
+            </div>
+            <div class="lang-option" data-lang="fr" role="menuitem">
+              <span class="flag">🇫🇷</span><span data-i18n="menu.language.french">French</span>
+            </div>
+            <div class="lang-option" data-lang="es" role="menuitem">
+              <span class="flag">🇪🇸</span><span data-i18n="menu.language.spanish">Spanish</span>
+            </div>
+            <div class="lang-option" data-lang="it" role="menuitem">
+              <span class="flag">🇮🇹</span><span data-i18n="menu.language.italian">Italian</span>
+            </div>
+            <div class="lang-option" data-lang="no" role="menuitem">
+              <span class="flag">🇳🇴</span><span data-i18n="menu.language.norwegian">Norwegian</span>
+            </div>
+            <div class="lang-option" data-lang="sv" role="menuitem">
+              <span class="flag">🇸🇪</span><span data-i18n="menu.language.swedish">Swedish</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h2 data-i18n="menu.difficulty.title" style="margin-top:0;">Difficulty</h2>
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        <div>
+          <h3 style="margin:0 0 0.5rem; font-size:15px;" data-i18n="menu.speed.title">Speed</h3>
+          <div class="speed-group" style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
+            <button data-speed="normal" class="speed-btn" style="background:#64748b; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.speed.normal">Normal</button>
+            <button data-speed="fast" class="speed-btn" style="background:#fbbf24; color:#0f172a; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.speed.fast">Fast</button>
+            <button data-speed="insane" class="speed-btn" style="background:#f87171; color:#0f172a; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.speed.insane">Insane</button>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 0.5rem; font-size:15px;" data-i18n="menu.amount.title">Amount</h3>
+          <div class="amount-group" style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
+            <button data-amount="normal" class="amount-btn" style="background:#64748b; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.amount.normal">Normal</button>
+            <button data-amount="many" class="amount-btn" style="background:#60a5fa; color:#0f172a; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.amount.many">Many</button>
+            <button data-amount="horde" class="amount-btn" style="background:#a855f7; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer;" data-i18n="menu.amount.horde">Horde</button>
+          </div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 0.5rem; font-size:15px;" data-i18n="menu.penalty.title">Wrong Key Penalty</h3>
+          <div class="life-group" style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
+            <button data-life="off" class="life-btn" style="background:#64748b; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer; font-size:14px;" data-i18n="menu.penalty.lifeOff">😇 No Life Loss</button>
+            <button data-life="on" class="life-btn" style="background:#f43f5e; color:#fff; border:none; padding:0.5rem 0.9rem; border-radius:6px; cursor:pointer; font-size:14px;" data-i18n="menu.penalty.lifeOn">😈 Life Loss</button>
+          </div>
+        </div>
+        <button id="start-btn" disabled style="margin-top:0.5rem; background:#6ee7b7; color:#0f172a; border:none; padding:0.6rem 1.2rem; font-size:16px; border-radius:6px; cursor:pointer; opacity:0.5;" data-i18n="menu.start">Start</button>
+      </div>
+    </div>
+  </div>
+  <div id="end-screen">
+    <div class="panel">
+      <h2 data-i18n="game.over.title">Game Over</h2>
+      <p id="final-score"></p>
+      <p id="best-score"></p>
+      <button id="restart-btn" data-i18n="game.restart">Play Again</button>
+      <button id="back-menu-btn" style="margin-top:0.5rem; background:#334155; color:#fff; border:none; padding:0.5rem 1rem; font-size:14px; border-radius:6px; cursor:pointer;" data-i18n="game.backToMenu">Back to Menu</button>
+    </div>
+  </div>
+  <div id="pause-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.65); display:none; align-items:center; justify-content:center;">
+    <div style="background:#1e2530; padding:1.2rem 1.6rem; border-radius:10px; text-align:center; box-shadow:0 0 0 1px #2c2f36, 0 4px 16px -4px #000; min-width:240px; display:flex; flex-direction:column; gap:0.75rem;">
+      <h3 style="margin:0;" data-i18n="pause.title">Paused</h3>
+      <button id="resume-btn" style="background:#6ee7b7; color:#0f172a; border:none; padding:0.5rem 0.9rem; font-size:14px; border-radius:6px; cursor:pointer;" data-i18n="pause.resume">Resume</button>
+      <button id="pause-menu-btn" style="background:#334155; color:#fff; border:none; padding:0.5rem 0.9rem; font-size:14px; border-radius:6px; cursor:pointer;" data-i18n="pause.backToMenu">Back to Menu</button>
+    </div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
