@@ -9,5 +9,16 @@
     "comment": "pitchRandomization: range (+/-) applied to base rate 1.0; 0 disables variation"
   },
   "soundEffectsVolumeDefault": 0.8,
+  "jarPhysics": {
+    "gravityY": 320,
+    "bounce": 0.42,
+    "floorDamp": 0.65,
+    "horizontalFriction": 0.92,
+    "bodyRadius": 10,
+    "fontSize": 32,
+    "charCount": 100,
+    "maxSlice": 1000,
+    "comment": "gravityY px/s^2 downward; bounce coefficient; floorDamp multiplies vertical velocity after bounce; horizontalFriction applied each frame"
+  },
   "comment": "Gameplay tuning values not tied to difficulty scaling."
 }

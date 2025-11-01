@@ -33,4 +33,6 @@
   "pause.resume": "Continuar",
   "pause.backToMenu": "Volver al menú",
   "pause.sfxVolume": "Volumen efectos"
+  ,"jar.title": "Letras Recolectadas"
+  ,"jar.total": "Total: {count}"
 }

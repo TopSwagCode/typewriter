@@ -52,6 +52,14 @@ export default class LetterAttackScene extends Phaser.Scene {
     this.errorSound = this.sound.add('error');
     this.heartbeatSound = this.sound.add('heartbeat', { loop: true });
     this.updateSfxVolume(typeof window.SFX_VOLUME === 'number' ? window.SFX_VOLUME : 0.8);
+    // Track all characters successfully hit this run
+    this.hitLetters = [];
+
+    // Miss flash overlay setup (single full-screen rectangle reused)
+    const { width, height } = this.game.config;
+    this.missFlashRect = this.add.rectangle(width/2, height/2, width, height, 0xf43f5e)
+      .setAlpha(0)
+      .setDepth(1000);
   }
 
   setPaused(paused) {
@@ -230,7 +238,7 @@ export default class LetterAttackScene extends Phaser.Scene {
       });
       delayAccum += perDelay;
     });
-    // After explosions complete, finalize game over overlay
+  // After explosions complete, finalize and transition to Jar visualization scene
   const postDelay = (window.GAMEOVER_POST_EXPLOSIONS_DELAY_MS !== undefined ? window.GAMEOVER_POST_EXPLOSIONS_DELAY_MS : 250);
   this.time.delayedCall(delayAccum + postDelay, () => {
       // Clear letters array
@@ -240,7 +248,13 @@ export default class LetterAttackScene extends Phaser.Scene {
       this.letters.length = 0;
   if (this.finalScoreEl) this.finalScoreEl.textContent = (window.t ? window.t('score.your', { score: hits }) : `Your Score: ${hits}`);
   if (this.bestScoreEl) this.bestScoreEl.textContent = (window.t ? window.t('score.best', { score: best }) : `Best Score: ${best}`);
-      if (this.endScreenEl) this.endScreenEl.style.display = 'flex';
+      // Launch JarScene with collected letters data
+      if (this.scene && this.scene.start) {
+        this.scene.start('JarScene', { letters: this.hitLetters.slice() });
+      } else if (this.endScreenEl) {
+        // Fallback to existing overlay if JarScene unavailable
+        this.endScreenEl.style.display = 'flex';
+      }
     });
   }
 
@@ -321,5 +335,17 @@ export default class LetterAttackScene extends Phaser.Scene {
     if (this.heartbeatSound && this.heartbeatSound.isPlaying) {
       this.heartbeatSound.setVolume(this.currentSfxVolume * 0.75);
     }
+  }
+
+  triggerMissFlash() {
+    if (!this.missFlashRect) return;
+    this.missFlashRect.setAlpha(0.55);
+    // Fade out quickly
+    this.tweens.add({
+      targets: this.missFlashRect,
+      alpha: 0,
+      duration: 160,
+      ease: 'Quadratic.Out'
+    });
   }
 }

@@ -39,6 +39,12 @@
     <h1 data-i18n="home.title">Codename: Typewriter</h1>
   </header>
   <div id="game-root"></div>
+  <!-- Jar Scene external info overlay (hidden until JarScene active) -->
+  <div id="jar-info" style="display:none; margin-top:0.75rem; text-align:center;">
+    <h2 data-i18n="jar.title" style="margin:0 0 0.5rem; font-size:20px; color:#6ee7b7;">Collected Letters</h2>
+    <div id="jar-total" style="font-size:14px; margin-bottom:0.5rem;" data-i18n="jar.total">Total: 0</div>
+    <button id="jar-back-btn" style="background:#334155; color:#fff; border:none; padding:0.4rem 0.9rem; font-size:13px; border-radius:6px; cursor:pointer;" data-i18n="game.backToMenu">Back to Menu</button>
+  </div>
   <div class="hud" id="hud"></div>
   <div id="difficulty-select" style="position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); flex-direction:column; gap:1rem;">
     <div style="background:#1e2530; padding:1.5rem 2rem; border-radius:10px; text-align:center; box-shadow:0 0 0 1px #2c2f36, 0 4px 18px -4px #000; min-width:340px; position:relative;">
@@ -126,6 +132,35 @@
         </label>
         <input id="sfx-volume" type="range" min="0" max="100" value="80" step="1" style="width:100%; margin-top:0.35rem; accent-color:#6ee7b7;" />
       </div>
+    </div>
+  </div>
+  <!-- Debug overlay (toggled by Delete key) -->
+  <div id="debug-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.72); display:none; align-items:center; justify-content:center;">
+    <div style="background:#1e2530; padding:1.2rem 1.6rem; border-radius:10px; box-shadow:0 0 0 1px #2c2f36, 0 4px 16px -4px #000; min-width:260px; display:flex; flex-direction:column; gap:0.75rem;">
+      <h3 style="margin:0; color:#6ee7b7;">Debug</h3>
+      <p style="margin:0; font-size:12px; opacity:0.8;">Press Delete to toggle this panel.</p>
+      <button id="debug-jar-btn" style="background:#6ee7b7; color:#0f172a; border:none; padding:0.55rem 0.9rem; font-size:14px; border-radius:6px; cursor:pointer;">Spawn Jar (100 Random)</button>
+      <label style="display:flex; align-items:center; gap:0.4rem; font-size:12px;">
+        <input type="checkbox" id="debug-show-bodies" /> Show Physics Bodies
+      </label>
+      <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:12px; margin-top:0.4rem;">
+        <label for="debug-body-radius" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Body Radius</span>
+          <span id="debug-body-radius-value">18</span>
+        </label>
+        <input id="debug-body-radius" type="range" min="8" max="40" value="18" step="1" style="width:100%; accent-color:#6ee7b7;" />
+        <label for="debug-font-size" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Character Font Size</span>
+          <span id="debug-font-size-value">32</span>
+        </label>
+        <input id="debug-font-size" type="range" min="12" max="72" value="32" step="2" style="width:100%; accent-color:#6ee7b7;" />
+        <label for="debug-char-count" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Character Count</span>
+          <span id="debug-char-count-value">100</span>
+        </label>
+        <input id="debug-char-count" type="range" min="10" max="400" value="100" step="10" style="width:100%; accent-color:#6ee7b7;" />
+      </div>
+      <button id="debug-close-btn" style="background:#334155; color:#fff; border:none; padding:0.45rem 0.9rem; font-size:13px; border-radius:6px; cursor:pointer;">Close</button>
     </div>
   </div>
   <script type="module" src="./src/main.js"></script>

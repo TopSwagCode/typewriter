@@ -1,4 +1,5 @@
 import LetterAttackScene from './game/scenes/LetterAttackScene.js';
+import JarScene from './game/scenes/JarScene.js';
 
 const config = {
   type: Phaser.AUTO,
@@ -6,7 +7,7 @@ const config = {
   height: 480,
   backgroundColor: '#1e2530',
   parent: 'game-root',
-  scene: [LetterAttackScene],
+  scene: [LetterAttackScene, JarScene],
 };
 
 async function loadCharacterConfig() {
@@ -51,12 +52,24 @@ async function loadGameplayConfig() {
     // Expose hit sound pitch randomization range (+/-) if defined
     const pitchVar = (data.hitSound && typeof data.hitSound.pitchRandomization === 'number') ? data.hitSound.pitchRandomization : 0;
     window.HIT_SOUND_PITCH_RANDOMIZATION = pitchVar; // e.g., 0.15 -> random rate in [0.85,1.15]
+    const jp = data.jarPhysics || {};
+    window.JAR_PHYSICS = {
+      gravityY: typeof jp.gravityY === 'number' ? jp.gravityY : 320,
+      bounce: typeof jp.bounce === 'number' ? jp.bounce : 0.42,
+      floorDamp: typeof jp.floorDamp === 'number' ? jp.floorDamp : 0.65,
+      horizontalFriction: typeof jp.horizontalFriction === 'number' ? jp.horizontalFriction : 0.92,
+      bodyRadius: typeof jp.bodyRadius === 'number' ? jp.bodyRadius : 18,
+      fontSize: typeof jp.fontSize === 'number' ? jp.fontSize : 32,
+      charCount: typeof jp.charCount === 'number' ? jp.charCount : 100,
+      maxSlice: typeof jp.maxSlice === 'number' ? jp.maxSlice : 1000
+    };
   } catch (e) {
     window.GAMEPLAY_CONFIG = {
       startingLives: 3,
       gameOverDelays: { explosionIntervalMs: 70, postExplosionsDelayMs: 250 }
     };
     window.HIT_SOUND_PITCH_RANDOMIZATION = 0;
+    window.JAR_PHYSICS = { gravityY: 320, bounce: 0.42, floorDamp: 0.65, horizontalFriction: 0.92, bodyRadius: 18, fontSize: 32, charCount: 100, maxSlice: 1000 };
   }
 }
 
@@ -90,6 +103,34 @@ window.addEventListener('load', async () => {
   const pauseOverlay = document.getElementById('pause-overlay');
   const sfxVolumeSlider = document.getElementById('sfx-volume');
   const sfxVolumeValueEl = document.getElementById('sfx-volume-value');
+  const debugOverlay = document.getElementById('debug-overlay');
+  const debugJarBtn = document.getElementById('debug-jar-btn');
+  const debugCloseBtn = document.getElementById('debug-close-btn');
+  const debugShowBodiesCheckbox = document.getElementById('debug-show-bodies');
+  const debugBodyRadiusSlider = document.getElementById('debug-body-radius');
+  const debugBodyRadiusValue = document.getElementById('debug-body-radius-value');
+  const debugFontSizeSlider = document.getElementById('debug-font-size');
+  const debugFontSizeValue = document.getElementById('debug-font-size-value');
+  const debugCharCountSlider = document.getElementById('debug-char-count');
+  const debugCharCountValue = document.getElementById('debug-char-count-value');
+  // Initialize debug sliders from config defaults if available (before attaching listeners)
+  if (window.JAR_PHYSICS) {
+    if (debugBodyRadiusSlider) {
+      debugBodyRadiusSlider.value = String(window.JAR_PHYSICS.bodyRadius);
+      if (debugBodyRadiusValue) debugBodyRadiusValue.textContent = String(window.JAR_PHYSICS.bodyRadius);
+      window.JAR_DEBUG_RADIUS = window.JAR_PHYSICS.bodyRadius;
+    }
+    if (debugFontSizeSlider) {
+      debugFontSizeSlider.value = String(window.JAR_PHYSICS.fontSize);
+      if (debugFontSizeValue) debugFontSizeValue.textContent = String(window.JAR_PHYSICS.fontSize);
+      window.JAR_DEBUG_FONT_SIZE = window.JAR_PHYSICS.fontSize;
+    }
+    if (debugCharCountSlider) {
+      debugCharCountSlider.value = String(window.JAR_PHYSICS.charCount);
+      if (debugCharCountValue) debugCharCountValue.textContent = String(window.JAR_PHYSICS.charCount);
+      window.JAR_DEBUG_COUNT = window.JAR_PHYSICS.charCount;
+    }
+  }
 
   // Sound effects volume (0..1) - default from gameplay config or 0.8
   let sfxVolume = (window.GAMEPLAY_CONFIG && typeof window.GAMEPLAY_CONFIG.soundEffectsVolumeDefault === 'number') ? window.GAMEPLAY_CONFIG.soundEffectsVolumeDefault : 0.8;
@@ -130,6 +171,18 @@ window.addEventListener('load', async () => {
         const value = translations[key] || key;
         el.textContent = value;
       });
+      // Refresh dynamic jar total if JarScene active and overlay visible
+      const jarInfoEl = document.getElementById('jar-info');
+      const jarTotalEl = document.getElementById('jar-total');
+      if (jarInfoEl && jarInfoEl.style.display !== 'none' && jarTotalEl) {
+        // Try to get JarScene instance to read current collectedLetters length
+        let count = 0;
+        if (phaserGame && phaserGame.scene && phaserGame.scene.keys['JarScene']) {
+          const js = phaserGame.scene.keys['JarScene'];
+          if (js && Array.isArray(js.collectedLetters)) count = js.collectedLetters.length;
+        }
+        jarTotalEl.textContent = window.t ? window.t('jar.total', { count }) : `Total: ${count}`;
+      }
       // Select character set tied to language
       const cCfg = window.CHARSET_CONFIG || { defaultLanguage: 'en', sets: { en: 'asdfjkl;ghierutywmn' } };
       const langKey = cCfg.sets[lang] ? lang : cCfg.defaultLanguage;
@@ -223,6 +276,8 @@ window.addEventListener('load', async () => {
       phaserGame = null;
     }
     gameStarted = false;
+    const jarInfoEl = document.getElementById('jar-info');
+    if (jarInfoEl) jarInfoEl.style.display = 'none';
     if (pauseOverlay) pauseOverlay.style.display = 'none';
     const endScreen = document.getElementById('end-screen');
     if (endScreen) endScreen.style.display = 'none';
@@ -276,6 +331,66 @@ window.addEventListener('load', async () => {
     const scene = phaserGame.scene.keys['LetterAttack'];
     if (scene && scene.setPaused) scene.setPaused(false);
   });
+  if (debugCloseBtn) debugCloseBtn.addEventListener('click', () => { if (debugOverlay) debugOverlay.style.display = 'none'; });
+  if (debugJarBtn) debugJarBtn.addEventListener('click', () => {
+    // Ensure Phaser game instance exists; if not, create minimal instance
+    if (!phaserGame) {
+      phaserGame = new Phaser.Game(config); // eslint-disable-line new-cap
+    }
+    // Generate 100 random characters from current CHAR_SET (fallback A-Z)
+    const sourceSet = (window.CHAR_SET_RAW || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+    const chars = sourceSet.length > 0 ? sourceSet : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const count = (typeof window.JAR_DEBUG_COUNT === 'number' ? window.JAR_DEBUG_COUNT : 100);
+    const arr = [];
+    for (let i = 0; i < count; i += 1) {
+      const c = chars[Math.floor(Math.random() * chars.length)];
+      arr.push(c.toLowerCase());
+    }
+    // Launch JarScene directly
+    phaserGame.scene.start('JarScene', {
+      letters: arr,
+      debugRadius: (typeof window.JAR_DEBUG_RADIUS === 'number' ? window.JAR_DEBUG_RADIUS : undefined),
+      debugFontSize: (typeof window.JAR_DEBUG_FONT_SIZE === 'number' ? window.JAR_DEBUG_FONT_SIZE : undefined)
+    });
+    if (debugOverlay) debugOverlay.style.display = 'none';
+  });
+  if (debugShowBodiesCheckbox) {
+    debugShowBodiesCheckbox.addEventListener('change', () => {
+      window.JAR_SHOW_BODY_DEBUG = !!debugShowBodiesCheckbox.checked;
+      // If JarScene active, update visibility immediately
+      if (phaserGame && phaserGame.scene.keys['JarScene']) {
+        const js = phaserGame.scene.keys['JarScene'];
+        if (js && js.refreshDebugBodiesVisibility) js.refreshDebugBodiesVisibility();
+      }
+    });
+  }
+  if (debugBodyRadiusSlider && debugBodyRadiusValue) {
+    debugBodyRadiusSlider.addEventListener('input', () => {
+      const val = parseInt(debugBodyRadiusSlider.value, 10);
+      window.JAR_DEBUG_RADIUS = val;
+      debugBodyRadiusValue.textContent = String(val);
+    });
+    window.JAR_DEBUG_RADIUS = parseInt(debugBodyRadiusSlider.value, 10);
+  }
+  if (debugFontSizeSlider && debugFontSizeValue) {
+    debugFontSizeSlider.addEventListener('input', () => {
+      const val = parseInt(debugFontSizeSlider.value, 10);
+      window.JAR_DEBUG_FONT_SIZE = val;
+      debugFontSizeValue.textContent = String(val);
+    });
+    window.JAR_DEBUG_FONT_SIZE = parseInt(debugFontSizeSlider.value, 10);
+  }
+  if (debugCharCountSlider && debugCharCountValue) {
+    debugCharCountSlider.addEventListener('input', () => {
+      const val = parseInt(debugCharCountSlider.value, 10);
+      window.JAR_DEBUG_COUNT = val;
+      debugCharCountValue.textContent = String(val);
+    });
+    window.JAR_DEBUG_COUNT = parseInt(debugCharCountSlider.value, 10);
+  }
+  window.addEventListener('tw_back_to_menu_request', () => {
+    showStartMenu();
+  });
   if (sfxVolumeSlider) {
     sfxVolumeSlider.addEventListener('input', () => {
       const raw = parseInt(sfxVolumeSlider.value, 10);
@@ -310,6 +425,12 @@ window.addEventListener('load', async () => {
       const scene = phaserGame.scene.keys['LetterAttack'];
       if (scene && !scene.gameOver) {
         scene.togglePause();
+      }
+    }
+    if (e.key.toLowerCase() === 'delete') {
+      if (debugOverlay) {
+        const isVisible = debugOverlay.style.display === 'flex';
+        debugOverlay.style.display = isVisible ? 'none' : 'flex';
       }
     }
   });

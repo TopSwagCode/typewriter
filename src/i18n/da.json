@@ -33,4 +33,6 @@
   "pause.resume": "Fortsæt",
   "pause.backToMenu": "Til Menu",
   "pause.sfxVolume": "Lydeffekter Lydstyrke"
+  ,"jar.title": "Indsamlede Bogstaver"
+  ,"jar.total": "I alt: {count}"
 }

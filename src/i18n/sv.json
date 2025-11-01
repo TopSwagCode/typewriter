@@ -33,4 +33,6 @@
   "pause.resume": "Fortsätt",
   "pause.backToMenu": "Till menyn",
   "pause.sfxVolume": "Ljudeffektsvolym"
+  ,"jar.title": "Insamlade Bokstäver"
+  ,"jar.total": "Totalt: {count}"
 }

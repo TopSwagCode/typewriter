@@ -33,4 +33,6 @@
   "pause.resume": "Resume",
   "pause.backToMenu": "Back to Menu",
   "pause.sfxVolume": "Sound Effects Volume"
+  ,"jar.title": "Collected Letters"
+  ,"jar.total": "Total: {count}"
 }

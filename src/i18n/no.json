@@ -33,4 +33,6 @@
   "pause.resume": "Fortsett",
   "pause.backToMenu": "Til meny",
   "pause.sfxVolume": "Lydeffekter Volum"
+  ,"jar.title": "Innsamlede Bokstaver"
+  ,"jar.total": "Totalt: {count}"
 }
