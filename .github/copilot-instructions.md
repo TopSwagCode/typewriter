@@ -17,6 +17,14 @@ These guidelines help AI coding agents contribute effectively to this early-stag
  Start button styling now activates (green tier + pulse) only when both Speed and Amount selected; base buttons neutral grey until selected.
  Difficulty/amount/life buttons now use tier-specific desaturated color palette with dynamic CSS pulse per selection.
  Introduced dynamic SFX volume slider (persisted) and randomized hit sound pitch variation (`hitSound.pitchRandomization`).
+ Font system dropdown (`#font-select`) with persistence (`tw_font`) and live refresh of active letters/hearts/JarScene; supported families: JetBrainsMono (multi-weight), Cousine (placeholder), Comic Sans MS (system), scary (custom Shlop).
+ Expanded JetBrainsMono @font-face set (Thin→ExtraBold + italics) self-hosted under `src/assets/fonts/`.
+ Added custom scary font via `@font-face` pointing to `src/assets/fonts/shlop rg.woff2`.
+ Runtime font change propagates to existing falling letters (not just new spawns) via `refreshFontFamily()`.
+ Game start waits for font load (`document.fonts.ready` race with timeout) to reduce fallback flash.
+ Hit metadata objects `{ char, color, tier }` stored instead of raw character strings.
+ JarScene normalizes collected letters (string or object) and preserves color when spawning.
+ Debug Jar spawn now creates colored/tiered objects with a small palette for visual variety.
 
  Base buttons neutral grey (#475569). Selected options get tier-specific styling:
   - Normal / Amount Normal / Life Off: green (#339877) pulse.
@@ -57,6 +65,7 @@ Only add directories when implementing related features; avoid speculative empty
 
 ## Typing Mechanics (Letter Attack MVP)
 - Letter entity shape currently: `{ id, char, charLower, x, y, speed, wobblePhase, wobbleAmp, bouncePhase?, bounceAmp?, tiltAmpDeg?, state }` where `state ∈ active|hit|missed`.
+ - Stored hit metadata shape in `scene.hitLetters`: `{ char, color, tier }` (color from spawn tier; tier ∈ slow|medium|fast).
 - Key handling: on `keydown`, lowercase match finds first visible active letter (`y >= 0`) with `charLower` equal to key.
 - Hit flow: mark `hit`, increment score, spawn shatter particles, floating +1 score popup, camera micro shake, remove letter.
 - Miss flow (wrong key): increments miss counter only for valid playable characters in current language set; optional life loss depending on menu selection (see Wrong Key Penalty below); aggressive shake + miss flash overlay.
@@ -139,11 +148,13 @@ Only add directories when implementing related features; avoid speculative empty
 ## File Touch Points
 - Primary gameplay: `src/game/scenes/LetterAttackScene.js`
 - Input: `src/game/input/typingInput.js` (contains conditional life loss and miss logic).
+  - Pushes hit metadata objects instead of plain characters.
 - Pause & miss flash: implemented inside `LetterAttackScene` (`setPaused`, `togglePause`, `triggerMissFlash`).
 - Spawning: `src/game/systems/spawnLetters.js` (off-screen spawn + motion attributes).
 - Effects: `src/game/systems/shatterEffect.js`, `src/game/systems/scorePopup.js`.
 - Persistence: `src/state/localStorage.js` + inline LocalStorage usage in `main.js` for difficulty selections.
 - Menu logic currently embedded in `src/main.js` (can be modularized later).
+  - Handles font selection, persistence, and global `window.GAME_FONT_FAMILY` setup; waits for fonts before Phaser init.
 - Game instance lifecycle: managed in `main.js` (`phaserGame` reference, `showStartMenu()` destroys before restart).
 
 ## Update Guidance (Recap)
@@ -159,6 +170,7 @@ Only add directories when implementing related features; avoid speculative empty
 
 ## Clarification Triggers (Updated)
 - Adding new persistent user settings.
+ - Adding or modifying font families / font selection behavior (weights, previews, fallback stack).
 - Modifying life penalty behavior or score formula.
 - Introducing performance optimizations impacting spawn timing accuracy.
 - Changing pause behavior (e.g., pausing during game over sequence or adding countdown timer).
