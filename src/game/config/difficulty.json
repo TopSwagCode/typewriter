@@ -4,12 +4,12 @@
     "amount": "normal"
   },
   "speedOptions": {
-    "normal": { "speedMultiplier": 0.50 },
+    "normal": { "speedMultiplier": 0.25 },
     "fast": { "speedMultiplier": 1.0 },
     "insane": { "speedMultiplier": 2.2 }
   },
   "amountOptions": {
-    "normal": { "spawnIntervalMs": 1500 },
+    "normal": { "spawnIntervalMs": 2500 },
     "many": { "spawnIntervalMs": 1000 },
     "horde": { "spawnIntervalMs": 500 }
   },
