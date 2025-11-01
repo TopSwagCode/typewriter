@@ -20,6 +20,7 @@ export function initTypingInput(scene, letters, scoreSystem) {
       scoreSystem.registerHit();
       createShatter(scene, target.textObj);
       createScorePopup(scene, target.textObj.x, target.textObj.y, 1);
+      if (scene.playHitSound) scene.playHitSound();
       // Tiny screen shake for feedback
       scene.cameras.main.shake(450, 0.002); // duration ms, intensity
       target._fading = true;
@@ -30,8 +31,9 @@ export function initTypingInput(scene, letters, scoreSystem) {
       if (!scene.gameOver) {
         scoreSystem.registerMiss();
         if (window.LOSE_LIFE_ON_WRONG_KEY === undefined || window.LOSE_LIFE_ON_WRONG_KEY) {
-          scene.loseLife();
+          scene.loseLife(true);
         }
+        if (scene.playErrorSound) scene.playErrorSound();
         scene.cameras.main.shake(500, 0.005);
         scene.triggerMissFlash();
         scene.updateHud();

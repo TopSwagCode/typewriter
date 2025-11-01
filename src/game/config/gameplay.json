@@ -4,5 +4,10 @@
     "explosionIntervalMs": 70,
     "postExplosionsDelayMs": 800
   },
+  "hitSound": {
+    "pitchRandomization": 0.15,
+    "comment": "pitchRandomization: range (+/-) applied to base rate 1.0; 0 disables variation"
+  },
+  "soundEffectsVolumeDefault": 0.8,
   "comment": "Gameplay tuning values not tied to difficulty scaling."
 }

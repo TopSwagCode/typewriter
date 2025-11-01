@@ -31,5 +31,6 @@
   ,"game.backToMenu": "Til meny",
   "pause.title": "Pauset",
   "pause.resume": "Fortsett",
-  "pause.backToMenu": "Til meny"
+  "pause.backToMenu": "Til meny",
+  "pause.sfxVolume": "Lydeffekter Volum"
 }

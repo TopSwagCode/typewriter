@@ -31,5 +31,6 @@
   ,"game.backToMenu": "Torna al menu",
   "pause.title": "In pausa",
   "pause.resume": "Riprendi",
-  "pause.backToMenu": "Torna al menu"
+  "pause.backToMenu": "Torna al menu",
+  "pause.sfxVolume": "Volume effetti"
 }

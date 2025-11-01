@@ -119,6 +119,13 @@
       <h3 style="margin:0;" data-i18n="pause.title">Paused</h3>
       <button id="resume-btn" style="background:#6ee7b7; color:#0f172a; border:none; padding:0.5rem 0.9rem; font-size:14px; border-radius:6px; cursor:pointer;" data-i18n="pause.resume">Resume</button>
       <button id="pause-menu-btn" style="background:#334155; color:#fff; border:none; padding:0.5rem 0.9rem; font-size:14px; border-radius:6px; cursor:pointer;" data-i18n="pause.backToMenu">Back to Menu</button>
+      <div style="margin-top:0.25rem; text-align:left;">
+        <label for="sfx-volume" style="font-size:12px; display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+          <span data-i18n="pause.sfxVolume">Sound Effects Volume</span>
+          <span id="sfx-volume-value" style="opacity:0.8;">80%</span>
+        </label>
+        <input id="sfx-volume" type="range" min="0" max="100" value="80" step="1" style="width:100%; margin-top:0.35rem; accent-color:#6ee7b7;" />
+      </div>
     </div>
   </div>
   <script type="module" src="./src/main.js"></script>

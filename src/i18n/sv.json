@@ -31,5 +31,6 @@
   ,"game.backToMenu": "Till menyn",
   "pause.title": "Pausad",
   "pause.resume": "Fortsätt",
-  "pause.backToMenu": "Till menyn"
+  "pause.backToMenu": "Till menyn",
+  "pause.sfxVolume": "Ljudeffektsvolym"
 }

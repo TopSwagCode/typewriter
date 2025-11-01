@@ -31,5 +31,6 @@
   ,"game.backToMenu": "Zurück zum Menü",
   "pause.title": "Pausiert",
   "pause.resume": "Fortsetzen",
-  "pause.backToMenu": "Zum Menü"
+  "pause.backToMenu": "Zum Menü",
+  "pause.sfxVolume": "Soundeffekte Lautstärke"
 }

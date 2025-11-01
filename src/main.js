@@ -48,11 +48,15 @@ async function loadGameplayConfig() {
     const res = await fetch('./src/game/config/gameplay.json');
     const data = await res.json();
     window.GAMEPLAY_CONFIG = data;
+    // Expose hit sound pitch randomization range (+/-) if defined
+    const pitchVar = (data.hitSound && typeof data.hitSound.pitchRandomization === 'number') ? data.hitSound.pitchRandomization : 0;
+    window.HIT_SOUND_PITCH_RANDOMIZATION = pitchVar; // e.g., 0.15 -> random rate in [0.85,1.15]
   } catch (e) {
     window.GAMEPLAY_CONFIG = {
       startingLives: 3,
       gameOverDelays: { explosionIntervalMs: 70, postExplosionsDelayMs: 250 }
     };
+    window.HIT_SOUND_PITCH_RANDOMIZATION = 0;
   }
 }
 
@@ -84,6 +88,25 @@ window.addEventListener('load', async () => {
   const resumeBtn = document.getElementById('resume-btn');
   const pauseMenuBtn = document.getElementById('pause-menu-btn');
   const pauseOverlay = document.getElementById('pause-overlay');
+  const sfxVolumeSlider = document.getElementById('sfx-volume');
+  const sfxVolumeValueEl = document.getElementById('sfx-volume-value');
+
+  // Sound effects volume (0..1) - default from gameplay config or 0.8
+  let sfxVolume = (window.GAMEPLAY_CONFIG && typeof window.GAMEPLAY_CONFIG.soundEffectsVolumeDefault === 'number') ? window.GAMEPLAY_CONFIG.soundEffectsVolumeDefault : 0.8;
+  // Load persisted volume
+  try {
+    const pv = localStorage.getItem('tw_sfx_volume');
+    if (pv !== null) {
+      const num = parseFloat(pv);
+      if (!Number.isNaN(num)) sfxVolume = Math.min(1, Math.max(0, num));
+    }
+  } catch (_) {}
+  window.SFX_VOLUME = sfxVolume;
+  function updateSfxSliderUI() {
+    if (sfxVolumeSlider) sfxVolumeSlider.value = Math.round(window.SFX_VOLUME * 100);
+    if (sfxVolumeValueEl) sfxVolumeValueEl.textContent = `${Math.round(window.SFX_VOLUME * 100)}%`;
+  }
+  updateSfxSliderUI();
 
   let phaserGame = null; // hold reference for scene access
 
@@ -134,6 +157,7 @@ window.addEventListener('load', async () => {
       localStorage.setItem('tw_last_amount', selectedAmount || '');
       localStorage.setItem('tw_last_life', selectedLife || 'on');
       localStorage.setItem('tw_lang', currentLang || 'en');
+      localStorage.setItem('tw_sfx_volume', String(window.SFX_VOLUME));
     } catch (_) { /* ignore quota */ }
   }
 
@@ -252,6 +276,20 @@ window.addEventListener('load', async () => {
     const scene = phaserGame.scene.keys['LetterAttack'];
     if (scene && scene.setPaused) scene.setPaused(false);
   });
+  if (sfxVolumeSlider) {
+    sfxVolumeSlider.addEventListener('input', () => {
+      const raw = parseInt(sfxVolumeSlider.value, 10);
+      const vol = Math.min(100, Math.max(0, raw)) / 100;
+      window.SFX_VOLUME = vol;
+      updateSfxSliderUI();
+      // Update existing scene sounds if active
+      if (phaserGame) {
+        const scene = phaserGame.scene.keys['LetterAttack'];
+        if (scene && scene.updateSfxVolume) scene.updateSfxVolume(vol);
+      }
+      persist();
+    });
+  }
 
   window.addEventListener('keydown', (e) => {
     let changed = false;

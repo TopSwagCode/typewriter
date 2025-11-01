@@ -31,5 +31,6 @@
   ,"game.backToMenu": "Back to Menu",
   "pause.title": "Paused",
   "pause.resume": "Resume",
-  "pause.backToMenu": "Back to Menu"
+  "pause.backToMenu": "Back to Menu",
+  "pause.sfxVolume": "Sound Effects Volume"
 }

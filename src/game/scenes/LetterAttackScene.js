@@ -12,6 +12,12 @@ export default class LetterAttackScene extends Phaser.Scene {
 
   preload() {
     // Placeholder for future assets (fonts, sounds). For now we rely on default text rendering.
+    // Load keystroke sound (mono sample) for hit feedback
+    this.load.audio('keystroke', ['src/assets/Keystroke.wav']);
+    // Load error sound for wrong key / life loss feedback
+    this.load.audio('error', ['src/assets/Error.wav']);
+    // Load low-life heartbeat loop (ambient)
+    this.load.audio('heartbeat', ['src/assets/AMBIENCE_HEARTBEAT_LOOP.wav']);
   }
 
   create() {
@@ -40,6 +46,12 @@ export default class LetterAttackScene extends Phaser.Scene {
     // Pause overlay reference
     this.pauseEl = document.getElementById('pause-overlay');
     this.isPaused = false;
+
+    // Prepare hit sound instance pool (Phaser manages single instances; we can just play with rate variation)
+    this.hitSound = this.sound.add('keystroke');
+    this.errorSound = this.sound.add('error');
+    this.heartbeatSound = this.sound.add('heartbeat', { loop: true });
+    this.updateSfxVolume(typeof window.SFX_VOLUME === 'number' ? window.SFX_VOLUME : 0.8);
   }
 
   setPaused(paused) {
@@ -50,6 +62,26 @@ export default class LetterAttackScene extends Phaser.Scene {
 
   togglePause() {
     this.setPaused(!this.isPaused);
+  }
+
+  playHitSound() {
+    if (!this.hitSound) return;
+    // Randomize playback rate around 1.0 using global range (+/-)
+    const varRange = (window.HIT_SOUND_PITCH_RANDOMIZATION !== undefined ? window.HIT_SOUND_PITCH_RANDOMIZATION : 0);
+    const r = varRange > 0 ? 1 + (Math.random() * 2 * varRange - varRange) : 1;
+    // For small variations we can reuse same sound; stop if still playing to avoid stacking artifacts
+    if (this.hitSound.isPlaying) this.hitSound.stop();
+    this.hitSound.setRate(r);
+    this.hitSound.play({ volume: this.currentSfxVolume });
+  }
+
+  playErrorSound() {
+    if (!this.errorSound) return;
+    const varRange = (window.HIT_SOUND_PITCH_RANDOMIZATION !== undefined ? window.HIT_SOUND_PITCH_RANDOMIZATION : 0);
+    const r = varRange > 0 ? 1 + (Math.random() * 2 * varRange - varRange) : 1;
+    if (this.errorSound.isPlaying) this.errorSound.stop();
+    this.errorSound.setRate(r);
+    this.errorSound.play({ volume: this.currentSfxVolume });
   }
 
   update(time, delta) {
@@ -150,7 +182,7 @@ export default class LetterAttackScene extends Phaser.Scene {
     this.refreshLowLifeEffect();
   }
 
-  loseLife() {
+  loseLife(fromWrongKey = false) {
     if (this.gameOver || this.lives <= 0) return;
     // Shatter last heart
     const heartObj = this.hearts[this.hearts.length - 1];
@@ -160,6 +192,8 @@ export default class LetterAttackScene extends Phaser.Scene {
       this.hearts.pop();
     }
     this.lives -= 1;
+    // Play error sound on any life loss
+    this.playErrorSound();
     if (this.lives <= 0) {
       this.beginGameOverSequence();
     }
@@ -170,6 +204,7 @@ export default class LetterAttackScene extends Phaser.Scene {
     if (this.gameOver) return;
     this.gameOver = true;
     this.clearLowLifeEffect();
+    this.stopHeartbeat();
     const { hits } = this.scoreSystem.getStats();
     const best = updateScoreIfHigher(hits);
     // Randomize remaining active letters for explosion
@@ -204,6 +239,7 @@ export default class LetterAttackScene extends Phaser.Scene {
   triggerGameOver() { // retained for compatibility if called elsewhere
     this.gameOver = true;
     this.clearLowLifeEffect();
+    this.stopHeartbeat();
     // Clear remaining letters
     for (const l of this.letters) {
       if (l.textObj && !l._fading) l.textObj.destroy();
@@ -225,6 +261,7 @@ export default class LetterAttackScene extends Phaser.Scene {
     if (this.endScreenEl) this.endScreenEl.style.display = 'none';
     this.createHearts();
     this.updateHud();
+    this.stopHeartbeat(); // will start again if low life condition met
   }
 
   refreshLowLifeEffect() {
@@ -243,6 +280,7 @@ export default class LetterAttackScene extends Phaser.Scene {
       });
       // Optional color tween overlay (simple manual loop)
       heart.setTintFill(0xff4d6d);
+      this.startHeartbeat();
     }
   }
 
@@ -254,6 +292,26 @@ export default class LetterAttackScene extends Phaser.Scene {
     if (this.hearts && this.hearts[0]) {
       this.hearts[0].clearTint();
       this.hearts[0].setScale(1);
+    }
+  }
+
+  startHeartbeat() {
+    if (!this.heartbeatSound) return;
+    if (this.heartbeatSound.isPlaying) return; // already running
+    this.heartbeatSound.play({ volume: this.currentSfxVolume * 0.75 }); // slightly quieter loop
+  }
+
+  stopHeartbeat() {
+    if (this.heartbeatSound && this.heartbeatSound.isPlaying) {
+      this.heartbeatSound.stop();
+    }
+  }
+
+  updateSfxVolume(vol) {
+    this.currentSfxVolume = Math.min(1, Math.max(0, vol));
+    // Adjust active looping sounds
+    if (this.heartbeatSound && this.heartbeatSound.isPlaying) {
+      this.heartbeatSound.setVolume(this.currentSfxVolume * 0.75);
     }
   }
 }
